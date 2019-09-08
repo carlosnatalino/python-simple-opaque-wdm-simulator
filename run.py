@@ -1,9 +1,10 @@
 import logging
-logging.basicConfig(format='%(asctime)s\t%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s\t%(name)-12s\t%(threadName)s\t%(message)s', level=logging.DEBUG)
 
 import argparse
 import copy
 import pickle
+import datetime
 import time
 import os
 import numpy as np
@@ -16,10 +17,12 @@ import plots
 
 
 def run(args):
-    print(args)
+    start_time = time.time()
 
     topology = graph.get_topology(args)
     env = core.Environment(args, topology=topology)
+
+    logger = logging.getLogger('run')
 
     # in this case, a configuration changes only the load of the network
     policies = ['SP', 'LB']
@@ -27,7 +30,7 @@ def run(args):
 
     if not os.path.isdir('./results/' + env.output_folder):
         os.makedirs('./results/' + env.output_folder)
-        logging.debug('creating folder ' + env.output_folder)
+        logger.debug(f'creating folder {env.output_folder}')
 
     manager = Manager()
     results = manager.dict()
@@ -49,11 +52,10 @@ def run(args):
             # if load == 10 and policy == 'LB':
             #     core.run_simulation(env_t)
 
-    logging.debug("Starting pool of simulators with %d threads", args.threads)
+    logger.debug(f'Starting pool of simulators with {args.threads} threads')
     # use the code above to keep updating the final plot as the simulation progresses
     with Pool(processes=args.threads) as p:
         result_pool = p.map_async(core.run_simulation, envs)
-        print(result_pool)
         p.close()
 
         done = False
@@ -62,7 +64,7 @@ def run(args):
                 done = True
             else:
                 time.sleep(args.temporary_plot_every)
-                plots.plot_final_results(env, results)
+                plots.plot_final_results(env, results, start_time)
 
     # if you do not want periodical updates, you can use the following code
     # with Pool(processes=args.threads) as p:
@@ -72,14 +74,12 @@ def run(args):
     #     logging.debug("Finished the threads")
 
     # consolidating statistics
-    plots.plot_final_results(env, results)
-    # for policy in policies: # runs the simulations for two policies
-    #     for load in loads:
-    #         request_blocking_ratio = np.array([x['request_blocking_ratio'] for x in results[policy][load]])
-    #         print(results[policy][load])
+    plots.plot_final_results(env, results, start_time)
 
     with open('./results/{}/results-final.h5'.format(env.output_folder), 'wb') as file:
         pickle.dump(results, file)
+
+    logger.debug('Finishing simulation after {}'.format(datetime.timedelta(seconds=(time.time() - start_time))))
 
 
 if __name__ == '__main__':
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                         help='Seed of the random numbers (default={})'.format(env.seed))
     parser.add_argument('-ns', '--num_seeds', type=int, default=env.num_seeds,
                         help='Number of seeds to run for each configuration (default={})'.format(env.num_seeds))
-    te = 10
+    te = 20
     parser.add_argument('-te', '--temporary_plot_every', type=int, default=te, #TODO: adjust for your needs
                         help='Time interval for plotting intermediate statistics of the simulation in seconds (default={})'.format(te))
     parser.add_argument('-o', '--output_dir', default=env.output_folder,

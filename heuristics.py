@@ -1,6 +1,5 @@
 import numpy as np
 import logging
-logging.basicConfig(format='%(asctime)s\t%(message)s', level=logging.DEBUG)
 
 
 def shortest_path(env, service, paths):
@@ -14,16 +13,15 @@ def shortest_path(env, service, paths):
 
 
 def load_balancing(env, service, paths):
+    """
+    Implements load balacing, i.e., selects the path that has the minimum usage.
+    """
     selected_path = env.k_paths # initialize the path to an out of bounds, i.e., non-existent
     least_load = np.finfo(0.0).max # initializes load to the maximum value of a float
-    # print('service', service.service_id)
     for idp, path in enumerate(paths):
-        # print('\tpath', idp, is_path_free(env.topology, path, service.number_units), get_max_usage(env.topology, path), path.node_list)
         if is_path_free(env.topology, path, service.number_units) and get_max_usage(env.topology, path) < least_load:
             least_load = get_max_usage(env.topology, path)
             selected_path = idp
-            # print('\t\t selected path', idp, is_path_free(env.topology, path, service.number_units),
-            #       get_max_usage(env.topology, path))
     return selected_path < env.k_paths, selected_path
 
 

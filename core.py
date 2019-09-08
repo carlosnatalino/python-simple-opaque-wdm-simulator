@@ -1,8 +1,8 @@
+import logging
 import random
 import heapq
+import multiprocessing
 import numpy as np
-import logging
-logging.basicConfig(format='%(asctime)s\t%(message)s', level=logging.DEBUG)
 
 import events
 import plots
@@ -102,7 +102,7 @@ class Environment:
 
         self.output_folder = 'data'
 
-        self.plot_formats = ['pdf'] # you can configure this to other formats
+        self.plot_formats = ['pdf'] # you can configure this to other formats such as PNG, SVG
 
     def compute_simulation_stats(self):
         # run here the code to summarize statistics from this specific run
@@ -198,7 +198,7 @@ class Environment:
         self.topology.graph['running_services'].append(service)
         self._update_network_stats()
 
-        # scheduling departure
+        # schedule departure
         self.add_event(Event(service.arrival_time + service.holding_time, events.departure, service))
 
     def reject_service(self, service):
@@ -212,6 +212,9 @@ class Environment:
             self.topology[service.route.node_list[i]][service.route.node_list[i + 1]]['running_services'].remove(service)
 
     def _update_link_stats(self, node1, node2):
+        """
+        Updates link statistics following a time-weighted manner.
+        """
         last_update = self.topology[node1][node2]['last_update']
         time_diff = self.current_time - self.topology[node1][node2]['last_update']
         if self.current_time > 0:
@@ -223,6 +226,9 @@ class Environment:
         self.topology[node1][node2]['last_update'] = self.current_time
 
     def _update_network_stats(self):
+        """
+        Updates statistics related to the entire network. To be implemented using the particular stats necessary for your problem.
+        """
         pass
 
     def get_request_blocking_ratio(self):
@@ -230,10 +236,16 @@ class Environment:
 
 
 def run_simulation(env):
-    logging.debug('Running simulation for load {:d} and policy {}'.format(env.load, env.policy))
+    """
+    Launches the simulation for one particular configuration represented by the env object.
+    """
+    logger = multiprocessing.log_to_stderr()
+    logger.setLevel(logging.INFO)
+    logger.info(f'Running simulation for load {env.load} and policy {env.policy}')
 
     for seed in range(env.num_seeds):
         env.reset(seed=env.seed + seed, id_simulation=seed) # adds to the general seed
+        logger.info(f'Running simulation {seed} for policy {env.policy} and load {env.load}')
         while len(env.events) > 0:
             event_tuple = heapq.heappop(env.events)
             time = event_tuple[0]
@@ -243,12 +255,12 @@ def run_simulation(env):
 
         env.compute_simulation_stats()
     # prepare observations
-    logging.debug("Finishing simulation")
+    logger.info(f'Finishing simulation for load {env.load} and policy {env.policy}')
 
 
 class Service:
     """"
-    Class that defines one service in the system
+    Class that defines one service in the system.
     """
     def __init__(self, serv_id, at, ht, src, src_id, dst, dst_id, number_units=1):
         self.service_id = serv_id
@@ -264,7 +276,9 @@ class Service:
 
 
 class Event:
-
+    """
+    Class that models one event of the event queue.
+    """
     def __init__(self, time=-1, call=None, params=None):
         self.time = time
         self.call = call

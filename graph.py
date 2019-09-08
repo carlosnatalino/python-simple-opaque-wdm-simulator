@@ -5,7 +5,6 @@ import xml.dom.minidom
 import networkx as nx
 import numpy as np
 import logging
-logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s', level=logging.DEBUG)
 
 
 def get_k_shortest_paths(G, source, target, k, weight=None):
@@ -45,54 +44,6 @@ def calculate_geographical_distance(latlong1, latlong2):
     return length
 
 
-def read_topology_file(file):
-    with open(file, 'r') as nodes_lines:
-        for idx, line in enumerate(nodes_lines):
-            if line.replace("\n", "") == "1":
-                return read_txt_file("topologies/" + file)
-
-
-def read_txt_file(file):
-    graph = nx.Graph()
-    num_nodes = 0
-    num_links = 0
-    with open(file, 'r') as nodes_lines:
-        for idx, line in enumerate(nodes_lines):
-            if 2 < idx <= num_nodes + 2: # skip title line
-                info = line.replace("\n", "").replace(",", ".").split("\t")
-                graph.add_node(info[0], name=info[1], pos=(float(info[2]), float(info[3])))
-            elif 2 + num_nodes < idx <= 2 + num_nodes + num_links: # skip title line
-                info = line.replace("\n", "").split("\t")
-                graph.add_edge(info[1], info[2], id=int(info[0]), weight=int(info[3]))
-            elif idx == 1:
-                num_nodes = int(line)
-            elif idx == 2:
-                num_links = int(line)
-
-    return graph
-
-
-def read_simmons_txt(file):
-    graph = nx.Graph()
-    topology_name = file.split(".")[0]
-    nNodes = 0
-    nLinks = 0
-    with open(file, 'r') as nodes_lines:
-        for idx, line in enumerate(nodes_lines):
-            if idx > 1 and idx <= nNodes + 1:  # skip title line
-                info = line.replace("\n", "").replace(",", ".").split("\t")
-                graph.add_node(info[0], name=info[0], pos=(float(info[2]), float(info[1])))
-            elif idx > 1 + nNodes and idx <= 1 + nNodes + nLinks:  # skip title line
-                info = line.replace("\n", "").split("\t")
-                graph.add_edge(info[0], info[1], weight=float(info[2]))
-            elif idx == 0:
-                nNodes = int(line)
-            elif idx == 1:
-                nLinks = int(line)
-    # printer.print_default_topology(graph, topology_name, axis=False, scale=True)
-    return graph
-
-
 def read_sndlib_topology(file):
     graph = nx.Graph()
 
@@ -106,9 +57,7 @@ def read_sndlib_topology(file):
         for node in nodes:
             x = node.getElementsByTagName("x")[0]
             y = node.getElementsByTagName("y")[0]
-            # print(node['id'], x.string, y.string)
             graph.add_node(node.getAttribute("id"), pos=((float(x.childNodes[0].data), float(y.childNodes[0].data))))
-        # print("Total nodes: ", graph.number_of_nodes())
         links = document.getElementsByTagName("link")
         for idx, link in enumerate(links):
             source = link.getElementsByTagName("source")[0]
@@ -124,16 +73,9 @@ def read_sndlib_topology(file):
             weight = 1.0
             graph.add_edge(source.childNodes[0].data, target.childNodes[0].data,
                            id=link.getAttribute("id"), weight=weight, length=length, index=idx)
-            # print("Edge: ", source.childNodes[0].data, " -> ", target.childNodes[0].data, "\tattrs", graph[source.childNodes[0].data][target.childNodes[0].data])
-        # print("Total edges: ", graph.number_of_edges())
     graph.graph["node_indices"] = []
     for idx, node in enumerate(graph.nodes()):
         graph.graph["node_indices"].append(node)
-    # for idx, node in enumerate(graph.graph["nodeIndices"]):
-    #     print('{} - {}'.format(idx, node))
-
-    # bc = nx.edge_betweenness_centrality(graph)
-    # print(bc)
 
     return graph
 
@@ -149,7 +91,6 @@ def get_topology(args):
         for idn2, n2 in enumerate(topology.nodes()):
             if idn1 < idn2:
                 paths = get_k_shortest_paths(topology, n1, n2, args.k_paths)
-                # print(n1, n2, len(paths))
                 lengths = [get_path_weight(topology, path) for path in paths]
                 objs = []
                 for path, length in zip(paths, lengths):
@@ -157,8 +98,5 @@ def get_topology(args):
                 # both directions have the same paths, i.e., bidirectional symetrical links
                 k_shortest_paths[n1, n2] = objs
                 k_shortest_paths[n2, n1] = objs
-                # print(k_shortest_paths[n1,n2])
-                # exit(0)
-    # exit(0)
     topology.graph["ksp"] = k_shortest_paths
     return topology
