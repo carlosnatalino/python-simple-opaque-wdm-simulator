@@ -76,13 +76,20 @@ def run(args):
     # consolidating statistics
     plots.plot_final_results(env, results, start_time)
 
-    with open('./results/{}/results-final.h5'.format(env.output_folder), 'wb') as file:
-        results = dict(results)
-        for k,v in results.items():
-            results[k] = dict(v);
-            for k2,v2 in results[k].items():
-                results[k][k2] = list(v2)
-        pickle.dump(results, file)
+    with open('./results/{}/final_results.h5'.format(env.output_folder), 'wb') as file:
+        realized_results = dict(results)
+        for k1,v1 in results.items():
+            realized_results[k1] = dict(v1);
+            for k2,v2 in results[k1].items():
+                realized_results[k1][k2] = list(v2)
+        pickle.dump({
+            'environment': env,
+            'results': realized_results,
+            'policies': policies,
+            'loads': loads,
+            'timedelta': datetime.timedelta(seconds=(time.time() - start_time)),
+            'datetime': datetime.datetime.fromtimestamp(time.time())
+        }, file)
 
     logger.debug('Finishing simulation after {}'.format(datetime.timedelta(seconds=(time.time() - start_time))))
 

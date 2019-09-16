@@ -39,7 +39,7 @@ def plot_simulation_progress(env):
     plt.close()
 
 
-def plot_final_results(env, results, start_time):
+def plot_final_results(env, results, start_time, savefile=True, show=False, timedelta=None):
     """
     Consolidates the statistics and plots it periodically and at the end of all simulations.
     """
@@ -70,16 +70,20 @@ def plot_final_results(env, results, start_time):
 
     plt.tight_layout()
 
+    if timedelta is None:
+        timedelta = datetime.timedelta(seconds=(time.time() - start_time))
     total_simulations = np.sum([1 for p in results for l in results[p]]) * env.num_seeds
     performed_simulations = np.sum([len(results[p][l]) for p in results for l in results[p]])
     plt.text(0.01, 0.02, 'Progress: {} out of {} ({:.3f} %) / {}'.format(performed_simulations,
                                                          total_simulations,
-                                                         float(performed_simulations) / float(
-                                                             total_simulations) * 100.,
-                                                        datetime.timedelta(seconds=(time.time() - start_time))),
+                                                         float(performed_simulations) / float(total_simulations) * 100.,
+                                                        timedelta),
                                                         transform=fig.transFigure,
                                                         fontsize=rcParams['font.size'] - 6.)
 
-    for format in env.plot_formats:
-        plt.savefig('./results/{}/final_results.{}'.format(env.output_folder, format))
+    if savefile:
+        for format in env.plot_formats:
+            plt.savefig('./results/{}/final_results.{}'.format(env.output_folder, format))
+    if show:
+        plt.show()
     plt.close()

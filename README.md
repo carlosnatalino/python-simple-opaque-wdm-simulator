@@ -29,6 +29,10 @@ The `run.py` has a help function to assist you making particular configurations.
 
 to access it.
 
+### Post-processing the results
+
+The code <a href='./reading-results.ipynb'>in this notebook</a> shows how to read the data saved from a simulation run and plot the results.
+
 ### Citing this software
 
 BibTeX entry:
