@@ -77,6 +77,11 @@ def run(args):
     plots.plot_final_results(env, results, start_time)
 
     with open('./results/{}/results-final.h5'.format(env.output_folder), 'wb') as file:
+        results = dict(results)
+        for k,v in results.items():
+            results[k] = dict(v);
+            for k2,v2 in results[k].items():
+                results[k][k2] = list(v2)
         pickle.dump(results, file)
 
     logger.debug('Finishing simulation after {}'.format(datetime.timedelta(seconds=(time.time() - start_time))))
