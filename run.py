@@ -116,7 +116,7 @@ if __name__ == '__main__':
                         help='Seed of the random numbers (default={})'.format(env.seed))
     parser.add_argument('-ns', '--num_seeds', type=int, default=env.num_seeds,
                         help='Number of seeds to run for each configuration (default={})'.format(env.num_seeds))
-    te = 20
+    te = 5
     parser.add_argument('-te', '--temporary_plot_every', type=int, default=te, #TODO: adjust for your needs
                         help='Time interval for plotting intermediate statistics of the simulation in seconds (default={})'.format(te))
     parser.add_argument('-o', '--output_dir', default=env.output_folder,

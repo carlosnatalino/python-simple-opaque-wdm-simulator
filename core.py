@@ -210,6 +210,8 @@ class Environment:
         for i in range(len(service.route.node_list) - 1):
             self.topology[service.route.node_list[i]][service.route.node_list[i + 1]]['available_units'] += service.number_units
             self.topology[service.route.node_list[i]][service.route.node_list[i + 1]]['running_services'].remove(service)
+            self._update_link_stats(service.route.node_list[i], service.route.node_list[i + 1])
+        self._update_network_stats()
 
     def _update_link_stats(self, node1, node2):
         """
