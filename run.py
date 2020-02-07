@@ -7,13 +7,14 @@ import pickle
 import datetime
 import time
 import os
-import numpy as np
 from multiprocessing import Pool
 from multiprocessing import Manager
 
+# imports of internal files
 import core
 import graph
 import plots
+import policies
 
 
 def run(args):
@@ -25,7 +26,7 @@ def run(args):
     logger = logging.getLogger('run')
 
     # in this case, a configuration changes only the load of the network
-    policies = ['SP', 'LB']
+    exec_policies = ['SAP', 'LB']
     loads = [x for x in range(args.min_load, args.max_load + 1, args.load_step)]
 
     if not os.path.isdir('./results/' + env.output_folder):
@@ -34,22 +35,28 @@ def run(args):
 
     manager = Manager()
     results = manager.dict()
-    for policy in policies: # runs the simulations for two policies
+    for policy in exec_policies: # runs the simulations for two policies
         results[policy] = {load: manager.list() for load in loads}
 
     envs = []
-    for policy in policies: # runs the simulations for two policies
+    for policy in exec_policies: # runs the simulations for two policies
         for load in loads:
+            if policy == 'SAP':  # shortest available path
+                policy_instance = policies.ShortestAvailablePath()
+            elif policy == 'LB':  # load balancing
+                policy_instance = policies.LoadBalancing()
+            else:
+                raise ValueError('Policy was not configured correctly (value set to {})'.format(policy))
             env_topology = copy.deepcopy(topology) # makes a deep copy of the topology object
             env_t = core.Environment(args,
                                      topology=env_topology,
                                      results=results,
                                      load=load,
-                                     policy=policy,
-                                     seed=len(policies) * load)
+                                     policy=policy_instance,
+                                     seed=len(exec_policies) * load)
             envs.append(env_t)
             # code for debugging purposes -- it runs without multithreading
-            # if load == 10 and policy == 'LB':
+            # if load == 400 and policy == 'SAP':
             #     core.run_simulation(env_t)
 
     logger.debug(f'Starting pool of simulators with {args.threads} threads')
@@ -83,9 +90,10 @@ def run(args):
             for k2,v2 in results[k1].items():
                 realized_results[k1][k2] = list(v2)
         pickle.dump({
-            'environment': env,
+            'args': args, # it is always advisable to save your inputs
+            'env': env, # the base environment as well
             'results': realized_results,
-            'policies': policies,
+            'policies': [policy for policy in exec_policies],
             'loads': loads,
             'timedelta': datetime.timedelta(seconds=(time.time() - start_time)),
             'datetime': datetime.datetime.fromtimestamp(time.time())

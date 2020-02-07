@@ -6,6 +6,7 @@ import numpy as np
 
 import events
 import plots
+from policies import ShortestAvailablePath
 
 
 class Environment:
@@ -61,12 +62,12 @@ class Environment:
         else:
             self.resource_units_per_link = 80
 
-        if args is not None and hasattr(args, "policy") and policy is None:
-            self.policy = args.policy
-        elif policy is not None:
+        if policy is not None:
             self.policy = policy # parameter has precedence over argument
+            self.policy.env = self
         else:
-            self.policy = 'SP' # shortest path by default
+            self.policy = ShortestAvailablePath() # shortest path by default
+            self.policy.env = self
 
         if topology is not None:
             self.topology = topology
@@ -108,7 +109,7 @@ class Environment:
         # run here the code to summarize statistics from this specific run
         plots.plot_simulation_progress(self)
         # add here the code to include other statistics you may want
-        self.results[self.policy][self.load].append({
+        self.results[self.policy.name][self.load].append({
             'request_blocking_ratio': self.get_request_blocking_ratio(),
             'average_link_usage': np.mean([self.topology[n1][n2]['utilization'] for n1, n2 in self.topology.edges()]),
             'individual_link_usage': [self.topology[n1][n2]['utilization'] for n1, n2 in self.topology.edges()]
@@ -243,11 +244,11 @@ def run_simulation(env):
     """
     logger = multiprocessing.log_to_stderr()
     logger.setLevel(logging.INFO)
-    logger.info(f'Running simulation for load {env.load} and policy {env.policy}')
+    logger.info(f'Running simulation for load {env.load} and policy {env.policy.name}')
 
     for seed in range(env.num_seeds):
         env.reset(seed=env.seed + seed, id_simulation=seed) # adds to the general seed
-        logger.info(f'Running simulation {seed} for policy {env.policy} and load {env.load}')
+        logger.info(f'Running simulation {seed} for policy {env.policy.name} and load {env.load}')
         while len(env.events) > 0:
             event_tuple = heapq.heappop(env.events)
             time = event_tuple[0]
@@ -257,7 +258,7 @@ def run_simulation(env):
 
         env.compute_simulation_stats()
     # prepare observations
-    logger.info(f'Finishing simulation for load {env.load} and policy {env.policy}')
+    logger.info(f'Finishing simulation for load {env.load} and policy {env.policy.name}')
 
 
 class Service:

@@ -35,7 +35,7 @@ def plot_simulation_progress(env):
     # plt.show()
     for format in env.plot_formats:
         plt.savefig('./results/{}/progress_{}_{}_{}.{}'.format(env.output_folder,
-                                                               env.policy, env.load, env.id_simulation, format))
+                                                               env.policy.name, env.load, env.id_simulation, format))
     plt.close()
 
 

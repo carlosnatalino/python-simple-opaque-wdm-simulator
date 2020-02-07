@@ -1,17 +1,10 @@
 import logging
 
-import heuristics
-
 
 def arrival(env, service):
     # logging.debug('Processing arrival {} for policy {} load {} seed {}'.format(service.service_id, env.policy, env.load, env.seed))
     paths = env.topology.graph['ksp'][service.source, service.destination]
-    if env.policy == 'SP': # shortest available path
-        success, id_path = heuristics.shortest_path(env, service, paths)
-    elif env.policy == 'LB': # load balancing
-        success, id_path = heuristics.load_balancing(env, service, paths)
-    else:
-        raise ValueError('Policy was not configured correctly (value set to {})'.format(env.policy))
+    success, id_path = env.policy.route(service, paths)
 
     if success:
         service.route = paths[id_path]
