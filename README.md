@@ -1,11 +1,15 @@
 # Simple Opaque WDM Simulator
 
 Simple simulator implemented in Python 3.7 for simulating opaque WDM networks, e.g, optical networks containing wavelength conversion at each noce.
+This means that the lightpaths do not need to enforce the wavelength continuity constraint.
+For more info, see [this paper](https://ieeexplore.ieee.org/abstract/document/767791).
 The simulator implements the basic funcionalities, and allows you to add more complex features for your particular purposes.
 The simulator offers multi-threading for running multiple configurations using a pool of threads.
 Graph manipulation is implemented using the NetworkX 2.x library.
 
-![Example of topology](./results/data/topology.svg)
+<p align="center">
+  <img src="./results/data/topology_nobel-us.svg" alt="Example of topology"/>
+</p>
 
 ### Dependencies:
 
@@ -64,7 +68,7 @@ The code <a href='./reading-results.ipynb'>in this notebook</a> shows how to rea
 
 This software was developed as part of the following research paper:
 
-C. N. da Silva, L. Wosinska, S. Spadaro, J. C. W. A. Costa, C. R. L. Frances and P. Monti, "Restoration in optical cloud networks with relocation and services differentiation," in IEEE/OSA Journal of Optical Communications and Networking, vol. 8, no. 2, pp. 100-111, Feb. 2016. DOI: 10.1364/JOCN.8.000100. [Open access](http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A925332&dswid=-6552) [IEEEXplore](https://ieeexplore.ieee.org/abstract/document/7405173).
+C. N. da Silva, L. Wosinska, S. Spadaro, J. C. W. A. Costa, C. R. L. Frances and P. Monti, "Restoration in optical cloud networks with relocation and services differentiation," in IEEE/OSA Journal of Optical Communications and Networking, vol. 8, no. 2, pp. 100-111, Feb. 2016. DOI: 10.1364/JOCN.8.000100. [Open access](http://www.diva-portal.org/smash/record.jsf?pid=diva2%3A925332&dswid=-6552)
 
 BibTeX entry:
 
