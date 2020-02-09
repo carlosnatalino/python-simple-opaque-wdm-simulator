@@ -8,7 +8,7 @@ class RoutingPolicy(abc.ABC):
         self.env = None
         self.name = None
 
-    @abc.abstractclassmethod
+    @abc.abstractmethod
     def route(self, service, paths):
         pass
 
