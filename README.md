@@ -18,6 +18,7 @@ This code was validated using Python 3.7. The software has the following depende
 - [Numpy](https://numpy.org/)
 - [NetworkX](https://networkx.github.io/)
 - [Matplotlib](https://matplotlib.org/)
+- [GitPython](https://gitpython.readthedocs.io/en/stable/)
 
 ### Code organization and features:
 

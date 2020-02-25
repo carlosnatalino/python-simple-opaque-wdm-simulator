@@ -11,7 +11,8 @@ from policies import ShortestAvailablePath
 
 class Environment:
 
-    def __init__(self, args=None, topology=None, results=None, seed=None, load=None, policy=None, id_simulation=None):
+    def __init__(self, args=None, topology=None, results=None, seed=None, load=None, policy=None, id_simulation=None,
+                 output_folder=None):
 
         if args is not None and hasattr(args, 'mean_service_holding_time'):
             self.mean_service_holding_time = args.mean_service_holding_time
@@ -101,7 +102,12 @@ class Environment:
         self._rejected_services = 0
         self.current_time = 0.0
 
-        self.output_folder = 'data'
+        if output_folder is not None:
+            self.output_folder = output_folder
+        elif args is not None and hasattr(args, "output_folder"):
+            self.output_folder = args.output_folder
+        else:
+            self.output_folder = 'data'
 
         self.plot_formats = ['pdf'] # you can configure this to other formats such as PNG, SVG
 

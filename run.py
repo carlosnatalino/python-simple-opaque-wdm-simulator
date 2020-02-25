@@ -3,9 +3,12 @@ logging.basicConfig(format='%(asctime)s\t%(name)-12s\t%(threadName)s\t%(message)
 
 import argparse
 import copy
+import sys
 import pickle
 import datetime
 import time
+import shutil
+import git
 import os
 from multiprocessing import Pool
 from multiprocessing import Manager
@@ -29,9 +32,28 @@ def run(args):
     exec_policies = ['SAP', 'LB']
     loads = [x for x in range(args.min_load, args.max_load + 1, args.load_step)]
 
+    final_output_folder = env.output_folder + '/' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S.%fUTC')
+    env.output_folder = final_output_folder
+
     if not os.path.isdir('./results/' + env.output_folder):
         os.makedirs('./results/' + env.output_folder)
         logger.debug(f'creating folder {env.output_folder}')
+
+    # copy current version of files
+    with open('./results/{}/0-info.txt'.format(env.output_folder), 'wt') as file:
+        width = 20
+        print('Date (UTC):'.ljust(width), datetime.datetime.now(datetime.timezone.utc), file=file)
+        print('Date (local):'.ljust(width), datetime.datetime.now(), file=file)
+        repo = git.Repo()
+        print('Commit date:'.ljust(width), datetime.datetime.fromtimestamp(repo.head.object.committed_date).strftime('%Y-%m-%d %H:%M:%S'), file=file)
+        print('Author:'.ljust(width), repo.head.object.committer, file=file)
+        print('GIT hexsha:'.ljust(width), repo.head.object.hexsha, file=file)
+        print('Command:'.ljust(width), ' '.join(sys.argv), file=file)
+        print('Arguments:'.ljust(width), args, file=file)
+
+    # copy current version of files
+    shutil.copytree('./', f'./results/{env.output_folder}/source-code/',
+                    ignore=shutil.ignore_patterns('__pycache__', '*.pyc', '*.md', 'results', 'LICENSE', '*.ipynb'))
 
     manager = Manager()
     results = manager.dict()
@@ -53,7 +75,8 @@ def run(args):
                                      results=results,
                                      load=load,
                                      policy=policy_instance,
-                                     seed=len(exec_policies) * load)
+                                     seed=len(exec_policies) * load,
+                                     output_folder=final_output_folder)
             envs.append(env_t)
             # code for debugging purposes -- it runs without multithreading
             # if load == 400 and policy == 'SAP':
