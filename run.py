@@ -119,7 +119,7 @@ if __name__ == '__main__':
     te = 5
     parser.add_argument('-te', '--temporary_plot_every', type=int, default=te, #TODO: adjust for your needs
                         help='Time interval for plotting intermediate statistics of the simulation in seconds (default={})'.format(te))
-    parser.add_argument('-o', '--output_dir', default=env.output_folder,
+    parser.add_argument('-o', '--output_folder', default=env.output_folder,
                         help='Output folder inside results (default={})'.format(env.output_folder))
     args = parser.parse_args()
     run(args)
